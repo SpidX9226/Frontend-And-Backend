@@ -19,7 +19,33 @@ export interface Product {
 const DATA_FILE = path.join(__dirname, "..", "data", "products.json");
 const SEED_FILE = path.join(__dirname, "..", "data", "products.seed.json");
 
-let writeQueue: Promise<void> = Promise.resolve();
+/**
+ * Очередь для записи в файл.
+ * 
+ * Работает на основе Promise.then().then();
+ * Promise.resolve() используется потому, что then() можно использовать только у
+ * уже существующего Promis'a
+ * 
+ * Используется для того чтобы избежать одновременных записей в файл
+ * которые могут стереть предыдущие изменения прошлые.
+ * 
+ */
+let operationQueue: Promise<void> = Promise.resolve();
+
+async function withLock<T>(operation: () => Promise<T>): Promise<T> {
+    const res: Promise<T> = operationQueue.then(operation);
+
+    // ? Почему не operationQueue = res?
+    // ! Потому что res имеет тип Promise<T>, а нам нужен Promise<void>
+    // ! .then(() => undefined) возвращает как раз таки Promise<void>
+    // ! .catch нужен чтобы вся очередь не упала при ошибке в одной из операций
+    operationQueue = res
+        .then(() => undefined)
+        .catch(() => undefined);
+    
+    // Возвращается именно res чтобы вызвающая функция получила результат именно этой операции
+    return res;
+}
 
 async function ensureDataFile(): Promise<void> {
     try {
@@ -55,69 +81,83 @@ function safeParse<T>(raw: string): T {
 async function writeAll(data: Product[]): Promise<void> {
     const payload = JSON.stringify(data, null, 4);
 
-    writeQueue = writeQueue.then(
-        () => fs.writeFile(DATA_FILE, payload, "utf-8")
-    );
+    await fs.writeFile(DATA_FILE, payload, 'utf-8');
+}
 
-    return writeQueue;
+async function readAll(): Promise<Product[]> {
+    await ensureDataFile();
+
+    const raw = await fs.readFile(DATA_FILE, 'utf-8');
+
+    return JSON.parse(raw || "[]") as Product[]
 }
 
 // PUBLIC API
 
 export async function getAll(): Promise<Product[]> {
-    const raw = await safeReadFile();
-    return safeParse<Product[]>(raw || "[]");
+    return withLock(async () => {
+        return await readAll()
+    });
 }
 
 export async function getById(id: string): Promise<Product | null> {
-    const list = await getAll();
-    return list.find((p) => p.id === id) ?? null;
+    return withLock(async () => {
+        const list = await readAll();
+
+        return list.find((p) => p.id === id) ?? null;
+    });
 }
 
 export async function add(product: Product): Promise<Product> {
-    if (!product.id) {
-        throw new Error("product must have an id!");
-    }
+    return withLock(async () => {
+        const list = await readAll();
 
-    const list: Product[] = await getAll();
+        const exists = list.some(
+            p => p.id === product.id
+        );
 
-    if (list.some((p) => p.id === product.id)) {
-        throw new Error(`Product with id: ${product.id} already exists`)
-    }
+        if (exists) {
+            throw new Error(`Product with id "${product.id}" already exists`);
+        }
 
-    const next: Product[] = [
-        ...list,
-        product
-    ];
+        list.push(product);
 
-    await writeAll(next);
-
-    return product;
+        await writeAll(list);
+        return product;
+    })
 }
 
-export async function update(id: string, patch: Partial<Omit<Product, "id">>): Promise<Product | null> {
-    const list: Product[] = await getAll();
-    const index: number = list.findIndex(p => p.id === id);
+export async function update(id: string, patch: Partial<Omit<Product, "id">>): Promise<Product> {
+    return withLock(async () => {
+        const list = await readAll();
+        const index = list.findIndex(p => p.id === id);
+        if (index === -1) {
+            throw new Error(`There is no product with id: ${id}`);
+        }
 
-    if (index === -1) {
-        return null;
-    }
+        const res: Product = {
+            ...list[index],
+            ...patch,
+            id: id
+        } as Product;
 
-    const updated: Product = {
-        ...list[index],
-        ...patch,
-        id: id
-    } as Product;
+        list[index] = res;
+        await writeAll(list);
 
-    return updated;
+        return res;
+    })
 }
 
 export async function remove(id: string): Promise<boolean> {
-    const list = await getAll();
-    const res = list.filter(p=> p.id !== id);
+    return withLock(async () => {
+        const list = await readAll();
+        const res = list.filter(p => p.id !== id);
 
-    if (list.length === res.length) { return false; }
-    
-    await writeAll(res);
-    return true;
+        if (list.length === res.length) {
+            return false;
+        }
+
+        await writeAll(res);
+        return true;
+    })
 }
