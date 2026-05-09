@@ -2,7 +2,8 @@ import { nanoid } from "nanoid";
 import { getAll, getById, add, update, remove } from '../store/productsStore';
 import type { Product } from "../store/productsStore";
 
-import express, {
+import express from "express";
+import type {
   Request,
   Response,
   NextFunction
