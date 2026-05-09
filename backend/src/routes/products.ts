@@ -1,14 +1,20 @@
-import express from "express";
 import { nanoid } from "nanoid";
 import { getAll, getById, add, update, remove } from '../store/productsStore';
 import type { Product } from "../store/productsStore";
-import { Request, Response, NextFunction } from "express";
+
+import express, {
+  Request,
+  Response,
+  NextFunction
+} from "express";
 
 const router = express.Router();
 
 router.get("/", async (req, res, next) => {
     try {
         const products = await getAll();
+        console.log("hit products route");
+        res.json(products);
     } catch(e) {
         next(e);
     }

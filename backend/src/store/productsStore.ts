@@ -1,8 +1,5 @@
 import path from "node:path";
 import fs from "fs/promises";
-import { error } from "node:console";
-import { readFile } from "node:fs";
-import { get } from "node:http";
 
 export interface Product {
     id: string;
@@ -16,8 +13,8 @@ export interface Product {
 }
 
 // PATHS
-const DATA_FILE = path.join(__dirname, "..", "data", "products.json");
-const SEED_FILE = path.join(__dirname, "..", "data", "products.seed.json");
+const DATA_FILE = path.join(__dirname, "..", "..", "data", "products.json");
+const SEED_FILE = path.join(__dirname, "..", "..", "data", "products.seed.json");
 
 /**
  * Очередь для записи в файл.

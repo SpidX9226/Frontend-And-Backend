@@ -1,0 +1,43 @@
+import express, {
+  Request,
+  Response,
+  NextFunction
+} from "express";
+import cors from "cors";
+import productsRouter from './routes/products'
+
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+app.use(
+    cors({
+        origin: "http://localhost:3001"
+    })
+);
+
+app.use(express.json());
+
+app.get('/', (req, res) => {
+    res.send("Express API is running. Try  /api/products");
+});
+
+app.use("/api/products", productsRouter);
+
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.log(err);
+
+    res.status(500).json({
+        error: "Internal Server Error"
+    });
+});
+
+app.use((req: Request, res: Response) => {
+  res.status(404).json({
+    error: "Not found"
+  });
+});
+
+app.listen(PORT, () => {
+    console.log(`Server started: http://localhost:${PORT}`);
+});

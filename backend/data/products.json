@@ -1,0 +1,28 @@
+[
+    {
+        "id": "p1",
+        "title": "Печенье",
+        "price": 79,
+        "category": "Сладости",
+        "description": "...",
+        "stock": 20,
+        "rating": 4.6,
+        "imageUrl": ""
+    },
+    {
+        "title": "iPhone 17 Pro Max",
+        "price": 999,
+        "category": "Phones",
+        "id": "rX-8I6CB"
+    },
+    {
+        "title": "iPhone 17 Pro Max",
+        "category": "Phone",
+        "description": "Apple iPhone",
+        "price": 1488,
+        "stock": 22,
+        "rating": 67,
+        "imageUrl": "empty",
+        "id": "iKm2Eh5n"
+    }
+]
