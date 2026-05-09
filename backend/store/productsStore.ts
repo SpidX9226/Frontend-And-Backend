@@ -30,14 +30,28 @@ const SEED_FILE = path.join(__dirname, "..", "data", "products.seed.json");
  * которые могут стереть предыдущие изменения прошлые.
  * 
  */
+// ! operationQueue -- это промис, представляющий завершение всех операций, добавленных в конец очереди
+// 1. ждёт старый хвост
+// 2. добавляет себя в конец
+// 3. становится новым хвостом
 let operationQueue: Promise<void> = Promise.resolve();
 
+/**
+ * Выполняет ассинхронные операции по порядку
+ * 
+ * Предотвращает гонки вовремя read-write-modify операций
+ * 
+ * @param operation Операция которая должна встать в конец очереди
+ * @returns Результат операции
+ */
 async function withLock<T>(operation: () => Promise<T>): Promise<T> {
+    // Создаёт новый промис с концом в виде operation
     const res: Promise<T> = operationQueue.then(operation);
 
     // ? Почему не operationQueue = res?
     // ! Потому что res имеет тип Promise<T>, а нам нужен Promise<void>
     // ! .then(() => undefined) возвращает как раз таки Promise<void>
+    // ! resolved (void) -> operation A -> void -> operation B -> void
     // ! .catch нужен чтобы вся очередь не упала при ошибке в одной из операций
     operationQueue = res
         .then(() => undefined)
@@ -54,11 +68,6 @@ async function ensureDataFile(): Promise<void> {
         const seedRaw = await fs.readFile(SEED_FILE, "utf-8");
         await fs.writeFile(DATA_FILE, seedRaw, "utf-8");
     }
-}
-
-async function safeReadFile(): Promise<string> {
-    await ensureDataFile();
-    return fs.readFile(DATA_FILE, "utf-8");
 }
 
 function safeParse<T>(raw: string): T {
@@ -94,6 +103,17 @@ async function readAll(): Promise<Product[]> {
 
 // PUBLIC API
 
+// ! Все оперции здесь работают с operationQueue и withLock
+// ! для избежания потери или неправильных данных
+
+/**
+ * Безопасная версия readAll()
+ * 
+ * работает с использованием operationQueue для достижения
+ * правильной последовательности операций и избежания перетерания данных
+ * 
+ * @returns Возвращает все эллементы списком продуктов
+ */
 export async function getAll(): Promise<Product[]> {
     return withLock(async () => {
         return await readAll()
