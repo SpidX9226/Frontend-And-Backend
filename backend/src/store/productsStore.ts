@@ -79,7 +79,6 @@ function safeParse<T>(raw: string): T {
         throw new Error("Failed to parse JSON data file");
     }
 }
-
 /**
  * Сохраняет полный список продуктов в json файл
  * 
@@ -131,6 +130,10 @@ export async function getById(id: string): Promise<Product | null> {
 }
 
 export async function add(product: Product): Promise<Product> {
+    if (!isValidProduct(product)) {
+        throw new Error("Invalid product structure or values");
+    }
+
     return withLock(async () => {
         const list = await readAll();
 
