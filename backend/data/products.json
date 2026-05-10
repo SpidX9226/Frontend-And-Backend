@@ -34,5 +34,15 @@
         "rating": 3.1,
         "imageUrl": "https://www.google.com/url?sa=t&source=web&rct=j&url=https%3A%2F%2Fwww.etsy.com%2Flisting%2F1565134047%2Froyal-purple-king-crown-gold-medieval&ved=0CBYQjRxqFwoTCOjDmafTrpQDFQAAAAAdAAAAABAF&opi=89978449",
         "id": "IOqaJEB_"
+    },
+    {
+        "title": "Headphones",
+        "category": "Gadgets",
+        "description": "A very good Headphones",
+        "price": 14.69,
+        "stock": 1212,
+        "rating": 4.2,
+        "imageUrl": "https://www.example.com/image.jpg",
+        "id": "KdVTr2xd"
     }
 ]
