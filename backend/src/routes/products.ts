@@ -77,7 +77,7 @@ router.get("/", async (req, res, next) => {
     try {
         const products = await getAll();
         console.log("hit products route");
-        res.json(products);
+        res.status(200).json(products);
     } catch(e) {
         next(e);
     }
@@ -94,7 +94,7 @@ router.get("/:id", async (req, res, next) => {
             });
         }
 
-        res.json(product);
+        res.status(200).json(product);
     } catch (e) {
         next(e);
     }
@@ -136,7 +136,7 @@ router.patch("/:id", async (req: Request<{ id: string }, {}, Partial<Omit<Produc
             });
         }
 
-        res.json(updated);
+        res.status(200).json(updated);
 
     } catch (e) {
         next(e)
@@ -152,7 +152,7 @@ router.delete("/:id", async (req: Request<{id: string}, {}, {}>, res: Response, 
             return res.status(404).json({message: `Product with id "${id}" not found`}) 
         };
 
-        res.json({ok: true});
+        res.status(200).json({ok: true});
     } catch (e) {
         next(e);
     }
