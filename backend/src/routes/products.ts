@@ -17,7 +17,6 @@ interface ValidationError {
 function validateProduct(data: any): { valid: boolean; errors: ValidationError[] } {
     const errors: ValidationError[] = [];
 
-    // Check required fields
     if (!data.title || typeof data.title !== "string" || data.title.trim() === "") {
         errors.push({ field: "title", message: "Title is required and must be a string" });
     }
@@ -30,28 +29,24 @@ function validateProduct(data: any): { valid: boolean; errors: ValidationError[]
         errors.push({ field: "description", message: "Description is required and must be a string" });
     }
 
-    // Validate price
     if (typeof data.price !== "number" || isNaN(data.price)) {
         errors.push({ field: "price", message: "Price must be a number" });
     } else if (data.price <= 0) {
         errors.push({ field: "price", message: "Price must be greater than 0" });
     }
 
-    // Validate stock
     if (typeof data.stock !== "number" || isNaN(data.stock) || !Number.isInteger(data.stock)) {
         errors.push({ field: "stock", message: "Stock must be an integer" });
     } else if (data.stock < 0) {
         errors.push({ field: "stock", message: "Stock cannot be negative" });
     }
 
-    // Validate rating
     if (typeof data.rating !== "number" || isNaN(data.rating)) {
         errors.push({ field: "rating", message: "Rating must be a number" });
     } else if (data.rating < 0 || data.rating > 5) {
         errors.push({ field: "rating", message: "Rating must be between 0 and 5" });
     }
 
-    // Validate imageUrl
     if (!data.imageUrl || typeof data.imageUrl !== "string" || data.imageUrl.trim() === "") {
         errors.push({ field: "imageUrl", message: "Image URL is required and must be a string" });
     } else if (!isValidUrl(data.imageUrl)) {
@@ -64,7 +59,6 @@ function validateProduct(data: any): { valid: boolean; errors: ValidationError[]
     };
 }
 
-// Helper function to validate URLs
 function isValidUrl(urlString: string): boolean {
     try {
         new URL(urlString);
@@ -103,7 +97,6 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
-// Use in your route
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
     try {
         const validation = validateProduct(req.body);

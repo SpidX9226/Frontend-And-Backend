@@ -130,10 +130,6 @@ export async function getById(id: string): Promise<Product | null> {
 }
 
 export async function add(product: Product): Promise<Product> {
-    if (!isValidProduct(product)) {
-        throw new Error("Invalid product structure or values");
-    }
-
     return withLock(async () => {
         const list = await readAll();
 
