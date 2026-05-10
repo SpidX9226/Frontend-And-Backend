@@ -6,6 +6,7 @@ import type {
 } from "express";
 import cors from "cors";
 import productsRouter from './routes/products.js'
+import logger from './middleware/logger.js'
 
 
 const app = express();
@@ -18,6 +19,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use(logger);
 
 app.get('/', (req, res) => {
     res.send("Express API is running. Try  /api/products");
