@@ -7,6 +7,7 @@ import type {
 import cors from "cors";
 import productsRouter from './routes/products.js'
 import logger from './middleware/logger.js'
+import { error } from "node:console";
 
 
 const app = express();
@@ -26,6 +27,18 @@ app.get('/', (req, res) => {
 });
 
 app.use("/api/products", productsRouter);
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err.type === 'entity.parse.failed') {
+        return res.status(400).json({
+            error: "Invalid JSON in request body",
+            datails: [{
+                message: "Try with valid json"
+            }]
+        })
+    }
+    next(err);
+});
 
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.log(err);
