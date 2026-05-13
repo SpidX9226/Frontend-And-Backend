@@ -1,23 +1,50 @@
-import ProductItem from "./ProductItem";
+//import ProductItem from "./ProductItem";
+import { api } from "../api/index";
+import { useEffect, useState } from "react";
 
-/**
- * @param products this is a list of products
- * @param onEdit this is a method that edits a product
- * @param onDelete this is a handler for delete event
- * @returns JSX markup
- */
-export default function ProductsList({products, onEdit, onDelete}) {
+export default function ProductsList({onEdit, onDelete}) {
+    const [products, setProducts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    const loadProducts = async ()=> {
+        try {
+            setLoading(true);
+            setError(null);
+            console.log(`Trying to load products list`);
+            const data = await api.getProducts();
+            setProducts(data);
+        } catch (err) {
+            console.log(err);
+            setError("Failed to load products");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(()=> {
+        loadProducts();
+    }, []);
+
+    if (loading) {
+        return <div className="loading">Loading products...</div>;
+    }
+
+    if (error) {
+        return <div className="error">{error}</div>;
+    }
+
     if (!products.length) {
-        return <div className="empty"> There is no products yet </div>
+        return <div className="empty">There are no products yet</div>;
     }
 
     return (
         <div className="list">
-            {
-                products.map((p) => (
-                    <ProductItem key={p.id} product={p} onEdit={onEdit} onDelete={onDelete} />
-                ))
-            }
+        {products.map((p) => (
+            <div key={p.id}>
+            <p>#{p.title}</p>
+                </div>
+        ))}
         </div>
-    );
+    )
 }
